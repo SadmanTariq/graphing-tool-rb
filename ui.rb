@@ -39,15 +39,16 @@ module Ui
     end
 
     class TextBox
-        attr_accessor :left_x, :top_y, :width, :height, :bg_color, :padding, :text_input, :font
+        attr_accessor :left_x, :top_y, :width, :height, :bg_color, :padding, :text_input, :font, :default_text
 
-        def initialize(left_x, top_y, width, bg_color, font, text_input, padding)
+        def initialize(left_x, top_y, width, bg_color, font, text_input, padding, default_text='')
             @left_x = left_x
             @top_y = top_y
             @bg_color = bg_color
             @font = font
             @text_input = text_input
             @padding = padding
+            @default_text = default_text
 
             #  Width and height of the rectangle
             @height = @font.height + @padding * 2
@@ -62,15 +63,23 @@ module Ui
         Gosu.draw_rect(
             text_box.left_x, text_box.top_y,
             text_box.width, text_box.height,
-            text_box.bg_color
+            text_box.bg_color, ZOrder::BACKGROUND
         )
-        if !text_box.text_input.nil?
-            text_box.font.draw_text(
-                text_box.text_input.text,
-                text_box.left_x + text_box.padding,
-                text_box.top_y + text_box.padding,
-                ZOrder::MIDDLE, 1, 1, Gosu::Color::BLACK
-            )
+
+        display_text = ''
+
+        if text_box.text_input.nil? or text_box.text_input.text == ''
+            #  Display the default text if no input
+            display_text = text_box.default_text
+        else
+            display_text = text_box.text_input.text
         end
+
+        text_box.font.draw_text(
+            display_text,
+            text_box.left_x + text_box.padding,
+            text_box.top_y + text_box.padding,
+            ZOrder::MIDDLE, 1, 1, Gosu::Color::BLACK
+        )
     end
 end
