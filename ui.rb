@@ -6,23 +6,19 @@ end
 
 module Ui
     class Button
-        attr_accessor :left_x, :top_y, :rect_width, :rect_height, :width, :height, :bg_color, :font, :text, :padding, :margin
+        attr_accessor :left_x, :top_y, :rect_width, :rect_height, :width, :height, :bg_color, :font, :text, :padding
 
-        def initialize(left_x, top_y, bg_color, font, text, padding, margin)
+        def initialize(left_x, top_y, bg_color, font, text, padding)
             @left_x = left_x
             @top_y = top_y
             @bg_color = bg_color
             @font = font
             @text = text
             @padding = padding
-            @margin = margin
 
             #  Width and height of the button rectangle
             @height = @font.height + @padding * 2
             @width = @font.text_width(@text) + @padding * 2
-
-            # @width = @rect_width + @margin * 2
-            # @height = @rect_height + @margin * 2
         end
     end
 

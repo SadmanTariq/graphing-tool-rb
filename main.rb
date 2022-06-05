@@ -27,8 +27,13 @@ class GrapherWindow < Gosu::Window
 
     def needs_cursor?; true; end
 
-    def update()
-
+    def mouse_in_rect?(left_x, top_y, width, height)
+        if mouse_x >= left_x and mouse_x < left_x + width
+            if mouse_y >= top_y and mouse_y < top_y + height
+                return true
+            end
+        end
+        return false
     end
 
     def draw()
@@ -42,8 +47,6 @@ class GrapherWindow < Gosu::Window
     end
 
     def button_down(id)
-        puts mouse_x
-        puts mouse_y
         case @state
         when State::MAIN_SCREEN
             if id == Gosu::KB_ENTER or id == Gosu::KB_RETURN
@@ -173,6 +176,10 @@ class GrapherWindow < Gosu::Window
 
         @translate_increment = 50  # Number of pixels in screen space
         @control_tips_texture = Gosu::Image.from_text('← ↑ → ↓: Move view', 20)
+        @back_button = Ui::Button.new(
+            710, 550, Gosu::Color::WHITE,
+            Gosu::Font.new(20), '< BACK', 5
+        )
 
         @plot_values = generate_plot_values()
     end
@@ -194,10 +201,10 @@ class GrapherWindow < Gosu::Window
             values << [x, @input_function.call(x)]
         end
 
-        # debug
-        for p in values
-            puts "(#{p[0]}, #{p[1]})"
-        end
+        # # debug
+        # for p in values
+        #     puts "(#{p[0]}, #{p[1]})"
+        # end
         return values
     end
 
@@ -205,6 +212,7 @@ class GrapherWindow < Gosu::Window
         draw_viewer(0, 0)
         # draw_graph_parameters()
         draw_controls_tips(610, 300)
+        Ui.draw_button(@back_button)
     end
 
     def draw_viewer(left_x, top_y)
@@ -312,6 +320,13 @@ class GrapherWindow < Gosu::Window
             translate_graph_up()
         when Gosu::KB_DOWN
             translate_graph_down()
+        when Gosu::MS_LEFT
+            if mouse_in_rect?(
+                @back_button.left_x, @back_button.top_y,
+                @back_button.width, @back_button.height
+            )
+                initialize_main_screen()
+            end
         end
     end
 
