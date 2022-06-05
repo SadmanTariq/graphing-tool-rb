@@ -47,6 +47,8 @@ class GrapherWindow < Gosu::Window
             if id == Gosu::KB_ENTER or id == Gosu::KB_RETURN
                 try_switch_to_viewer()
             end
+        when State::VIEWER_SCREEN
+            handle_viewer_button_down(id)
         end
     end
 
@@ -144,6 +146,8 @@ class GrapherWindow < Gosu::Window
     def initialize_viewer_screen()
         @state = State::VIEWER_SCREEN
 
+        @translate_increment = 50  # Number of pixels in screen space
+
         @plot_values = generate_plot_values()
     end
 
@@ -164,7 +168,10 @@ class GrapherWindow < Gosu::Window
             values << [x, @input_function.call(x)]
         end
 
-        puts values
+        # debug
+        for p in values
+            puts "(#{p[0]}, #{p[1]})"
+        end
         return values
     end
 
@@ -247,6 +254,49 @@ class GrapherWindow < Gosu::Window
             Gosu.draw_line(*point1, color, *point2, color)
         end
     end
+
+    def translate_graph(x, y)
+        # Translate the graph by a certain number of pixels in a direction.
+        x_scale = height / (@graph_end_x - @graph_start_x)
+        y_scale = height / (@graph_end_y - @graph_start_y)
+
+        @graph_start_x -= x / x_scale  # Dividing to transform into coordinate space
+        @graph_end_x -= x / x_scale
+        @graph_start_y -= y / y_scale
+        @graph_end_y -= y / y_scale
+
+        generate_plot_values()
+    end
+
+    def translate_graph_right()
+        translate_graph(@translate_increment, 0)
+    end
+
+    def translate_graph_left()
+        translate_graph(-@translate_increment, 0)
+    end
+
+    def translate_graph_up()
+        translate_graph(0, @translate_increment)
+    end
+
+    def translate_graph_down()
+        translate_graph(0, -@translate_increment)
+    end
+
+    def handle_viewer_button_down(id)
+        case id
+        when Gosu::KB_RIGHT
+            translate_graph_right()
+        when Gosu::KB_LEFT
+            translate_graph_left()
+        when Gosu::KB_UP
+            translate_graph_up()
+        when Gosu::KB_DOWN
+            translate_graph_down()
+        end
+    end
+    #  /Viewer screen
 end
 
 window = GrapherWindow.new(800, 600)
