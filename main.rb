@@ -67,6 +67,10 @@ class GrapherWindow < Gosu::Window
         self.text_input = Gosu::TextInput.new()
 
         @fx_texture = Gosu::Image.from_text('f(x) = ', 15)
+        @error_texture = Gosu::Image::from_text(
+            'There was an error. Please try again...', 20
+        )
+
         @text_box = Ui::TextBox.new(
             50 + @fx_texture.width,
             height / 2,
@@ -90,6 +94,13 @@ class GrapherWindow < Gosu::Window
             1, 1, Gosu::Color::BLACK
         )
         Ui.draw_text_box(@text_box)
+
+        if @error
+            @error_texture.draw(
+                85, 350, ZOrder::MIDDLE,
+                1, 1, Gosu::Color::RED
+            )
+        end
     end
     #  /Main screen
 
