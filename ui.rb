@@ -49,9 +49,6 @@ module Ui
             #  Width and height of the rectangle
             @height = @font.height + @padding * 2
             @width = width
-
-            # @width = @rect_width + @margin * 2
-            # @height = @rect_height + @margin * 2
         end
     end
 

@@ -219,7 +219,6 @@ class GrapherWindow < Gosu::Window
 
     def draw_viewer_screen()
         draw_viewer(0, 0)
-        # draw_graph_parameters()
         draw_controls_tips(610, 300)
         Ui.draw_button(@back_button)
     end
@@ -240,11 +239,13 @@ class GrapherWindow < Gosu::Window
     def draw_axes(left_x, top_y, size)
         mid_x, mid_y = *cartesian2screen(0, 0)
 
+        # Horizontal line (y-axis)
         Gosu.draw_line(
             0, mid_y, Gosu::Color::BLACK,
             size, mid_y, Gosu::Color::BLACK
         )
 
+        # Vertical line (x-axis)
         if mid_x <= size  # to ensure that it stays in bounds
             Gosu.draw_line(
                 mid_x, 0, Gosu::Color::BLACK,
@@ -258,7 +259,7 @@ class GrapherWindow < Gosu::Window
 
         x, y = *cartesian2screen(
             (@graph_start_x/gap).to_i * gap + left_x,
-            (@graph_end_y/gap).to_i * gap + top_y  # end, to go top to bottom
+            (@graph_end_y/gap).to_i * gap + top_y  # end y, to go top to bottom
         )
 
         while x < size
@@ -280,9 +281,9 @@ class GrapherWindow < Gosu::Window
 
     def draw_graph(left_x, top_y, size)
         color = Gosu::Color::RED
-        # width = 3
 
-        for i in 0..(@plot_values.length-2)  # Iterate from the first element to the second last
+        # Iterate from the first element to the second last
+        for i in 0..(@plot_values.length-2)
             point1 = cartesian2screen(*@plot_values[i])
             point2 = cartesian2screen(*@plot_values[i+1])
 
