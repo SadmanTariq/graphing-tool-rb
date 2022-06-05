@@ -105,6 +105,7 @@ class GrapherWindow < Gosu::Window
     #  /Main screen
 
     def get_fn_lambda()
+        # Return a lambda for the input function.
         fn = nil
 
         if @text_box.text_input.text != ''
@@ -118,6 +119,7 @@ class GrapherWindow < Gosu::Window
 
         return fn
     end
+
     def try_switch_to_viewer()
         if function_valid?(get_fn_lambda())
             @input_function = get_fn_lambda()
@@ -212,10 +214,6 @@ class GrapherWindow < Gosu::Window
             values << [x, @input_function.call(x)]
         end
 
-        # # debug
-        # for p in values
-        #     puts "(#{p[0]}, #{p[1]})"
-        # end
         return values
     end
 
