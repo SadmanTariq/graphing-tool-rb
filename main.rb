@@ -42,6 +42,8 @@ class GrapherWindow < Gosu::Window
     end
 
     def button_down(id)
+        puts mouse_x
+        puts mouse_y
         case @state
         when State::MAIN_SCREEN
             if id == Gosu::KB_ENTER or id == Gosu::KB_RETURN
@@ -170,6 +172,7 @@ class GrapherWindow < Gosu::Window
         @state = State::VIEWER_SCREEN
 
         @translate_increment = 50  # Number of pixels in screen space
+        @control_tips_texture = Gosu::Image.from_text('← ↑ → ↓: Move view', 20)
 
         @plot_values = generate_plot_values()
     end
@@ -201,7 +204,7 @@ class GrapherWindow < Gosu::Window
     def draw_viewer_screen()
         draw_viewer(0, 0)
         # draw_graph_parameters()
-        # draw_controls_tips()
+        draw_controls_tips(610, 300)
     end
 
     def draw_viewer(left_x, top_y)
@@ -224,10 +227,13 @@ class GrapherWindow < Gosu::Window
             0, mid_y, Gosu::Color::BLACK,
             size, mid_y, Gosu::Color::BLACK
         )
-        Gosu.draw_line(
-            mid_x, 0, Gosu::Color::BLACK,
-            mid_x, size, Gosu::Color::BLACK
-        )
+
+        if mid_x <= size  # to ensure that it stays in bounds
+            Gosu.draw_line(
+                mid_x, 0, Gosu::Color::BLACK,
+                mid_x, size, Gosu::Color::BLACK
+            )
+        end
     end
 
     def draw_grid(left_x, top_y, size, gap)
@@ -307,6 +313,10 @@ class GrapherWindow < Gosu::Window
         when Gosu::KB_DOWN
             translate_graph_down()
         end
+    end
+
+    def draw_controls_tips(left_x, top_y)
+        @control_tips_texture.draw(left_x, top_y, ZOrder::TOP, 1, 1, Gosu::Color::BLACK)
     end
     #  /Viewer screen
 end
