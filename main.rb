@@ -142,7 +142,30 @@ class GrapherWindow < Gosu::Window
         return false
     end
 
+
     #  Viewer screen
+    def x_scale()
+        return height.to_f / (@graph_end_x - @graph_start_x).to_f
+    end
+    def y_scale()
+        return -height.to_f / (@graph_end_y - @graph_start_y).to_f
+    end
+
+    def cartesian2screen(x, y)
+        # Converts cartesian coordinates in graph space to pixel coordinates in screen space.
+        return [cartesian2screen_x(x), cartesian2screen_y(y)]
+    end
+
+    def cartesian2screen_x(x)
+        x_off = -((@graph_end_x + @graph_start_x) / 2) * x_scale + height/2
+        return x * x_scale + x_off
+    end
+
+    def cartesian2screen_y(y)
+        y_off = -((@graph_end_y + @graph_start_y) / 2) * y_scale + height/2
+        return y * y_scale + y_off
+    end
+
     def initialize_viewer_screen()
         @state = State::VIEWER_SCREEN
 
@@ -155,7 +178,7 @@ class GrapherWindow < Gosu::Window
         values = []  # array of [x, y] values
 
         x = @graph_start_x
-        while x < @graph_end_y
+        while x < @graph_end_x
             if function_valid_at?(@input_function, x)
                 values << [x, @input_function.call(x)]
                 x += (@graph_end_x - @graph_start_x) / @graph_resolution
@@ -184,27 +207,18 @@ class GrapherWindow < Gosu::Window
     def draw_viewer(left_x, top_y)
         size = height
 
-        #  Amount to be multiplied
-        x_scale = size / (@graph_end_x - @graph_start_x)
-        y_scale = -size / (@graph_end_y - @graph_start_y)
-
-        #  Amount of units to be shifted
-        x_offset = ((@graph_end_x + @graph_start_x)/2) * x_scale + size/2
-        y_offset = ((@graph_end_y + @graph_start_y)/2) * y_scale + size/2
-
         draw_viewer_background(left_x, top_y, size)
-        draw_grid(left_x, top_y, x_offset, y_offset, x_scale, y_scale, size, 2.0)
-        draw_axes(left_x, top_y, x_offset, y_offset, size)
-        draw_graph(left_x, top_y, x_offset, y_offset, x_scale, y_scale, size)
+        draw_grid(left_x, top_y, size, 2.0)
+        draw_axes(left_x, top_y, size)
+        draw_graph(left_x, top_y, size)
     end
 
     def draw_viewer_background(left_x, top_y, size)
         Gosu.draw_rect(left_x, top_y, size, size, Gosu::Color::WHITE, ZOrder::BACKGROUND)
     end
 
-    def draw_axes(left_x, top_y, x_offset, y_offset, size)
-        mid_x = left_x + x_offset
-        mid_y = top_y + y_offset
+    def draw_axes(left_x, top_y, size)
+        mid_x, mid_y = *cartesian2screen(0, 0)
 
         Gosu.draw_line(
             0, mid_y, Gosu::Color::BLACK,
@@ -216,40 +230,38 @@ class GrapherWindow < Gosu::Window
         )
     end
 
-    def draw_grid(left_x, top_y, x_offset, y_offset, x_scale, y_scale, size, gap)
-        # TODO: add offsets to grid
+    def draw_grid(left_x, top_y, size, gap)
         color = Gosu::Color.new(255, 220, 220, 220)
-        gap_x = (gap * x_scale).abs
-        gap_y = (gap * y_scale).abs  # abs because y_scale is usually negative
 
-        for x in 0..(size / gap_x)
+        x, y = *cartesian2screen(
+            (@graph_start_x/gap).to_i * gap + left_x,
+            (@graph_end_y/gap).to_i * gap + top_y  # end, to go top to bottom
+        )
+
+        while x < size
             Gosu.draw_line(
-                x * gap_x, 0, color,
-                x * gap_x, size, color
+                x, 0, color,
+                x, size, color
             )
+            x += gap * x_scale.abs
         end
-        for y in 0..(size / gap_y)
+
+        while y < size
             Gosu.draw_line(
-                0, y * gap_y, color,
-                size, y * gap_y, color
+                0,    y, color,
+                size, y, color
             )
+            y += gap * y_scale.abs  # abs, because y_scale is usually negative
         end
     end
 
-    def draw_graph(left_x, top_y, x_offset, y_offset, x_scale, y_scale, size)
+    def draw_graph(left_x, top_y, size)
         color = Gosu::Color::RED
-        width = 3
+        # width = 3
 
         for i in 0..(@plot_values.length-2)  # Iterate from the first element to the second last
-            point1 = [
-                @plot_values[i][0] * x_scale + x_offset,
-                @plot_values[i][1] * y_scale + y_offset
-            ]
-
-            point2 = [
-                @plot_values[i+1][0] * x_scale + x_offset,
-                @plot_values[i+1][1] * y_scale + y_offset
-            ]
+            point1 = cartesian2screen(*@plot_values[i])
+            point2 = cartesian2screen(*@plot_values[i+1])
 
             Gosu.draw_line(*point1, color, *point2, color)
         end
@@ -260,12 +272,12 @@ class GrapherWindow < Gosu::Window
         x_scale = height / (@graph_end_x - @graph_start_x)
         y_scale = height / (@graph_end_y - @graph_start_y)
 
-        @graph_start_x -= x / x_scale  # Dividing to transform into coordinate space
-        @graph_end_x -= x / x_scale
-        @graph_start_y -= y / y_scale
-        @graph_end_y -= y / y_scale
+        @graph_start_x += x / x_scale  # Dividing to transform into coordinate space
+        @graph_end_x += x / x_scale
+        @graph_start_y += y / y_scale
+        @graph_end_y += y / y_scale
 
-        generate_plot_values()
+        @plot_values = generate_plot_values()
     end
 
     def translate_graph_right()
